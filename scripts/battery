@@ -1,0 +1,55 @@
+#!/bin/bash
+## Script to periodically check the battery level and push a warning if
+## the level gets too low.
+##
+##
+## Created by: jjssto
+## Last edited: 2018-04-01
+
+
+while true
+do
+	SLEEP_TIME=15m
+
+	# Get infos about the battery status
+	NOW=$(less /sys/class/power_supply/BAT1/uevent | grep "ENERGY_NOW" \
+		| sed 's/\(.*=\)\([0-9]*\)/\2/')
+
+	MAX=$(less /sys/class/power_supply/BAT1/uevent | \
+		grep "ENERGY_FULL=" | sed 's/\(.*=\)\([0-9]*\)/\2/')
+
+	STATUS=$(less /sys/class/power_supply/BAT1/uevent | grep "STATUS" \
+		| sed 's/\(.*=\)\(.*\)/\2/')
+
+	# Calculate the level of battery left
+	PERCENTAGE=$(echo "scale=0; 100*$NOW.0 / $MAX.0" | bc)
+
+	
+
+	if (( $PERCENTAGE < 10 ))
+	then
+		MESSAGE="Battery below 10%!"
+		SLEEP_TIME=1m
+
+	elif (( $PERCENTAGE < 20 ))
+	then
+		MESSAGE="Battery below 20%!"
+		SLEEP_TIME=10m
+	elif (( $PERCENTAGE < 30 )) 
+	then
+		MESSAGE="Battery below 30%!"
+		SLEEP_TIME=15m
+	else
+		MESSAGE=""
+		SLEEP_TIME=15m
+	fi
+
+	if [ "$STATUS" != Charging ] && [ "$MESSAGE" != "" ]
+	then
+		zenity --info --title "$MESSAGE" \
+		--text "<span font='14'>Only $PERCENTAGE % of battery left</span>"
+	fi
+
+	sleep $SLEEP_TIME
+
+done

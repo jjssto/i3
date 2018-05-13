@@ -1,0 +1,21 @@
+#!/usr/bin/env python3
+
+from subprocess import run
+from sys import exit
+
+if __name__=="__main__":
+	while True:
+		print ("To shutdown enter 0")
+		print ("To suspend enter 1")
+		user = input ("To abort enter 9\n\n")
+		if user == '0':
+			user = input ("Are you sure?(y/n) ")
+			if user == 'y':
+				run(['systemctl', 'poweroff'])
+				break
+		elif user == '1':
+			run(['systemctl', 'suspend'])
+			break
+		elif user == '9':
+			break
+	exit()	
